@@ -551,7 +551,7 @@ error is encountered.
 
 ## Logging
 
-By default, the `Gateway`, `Streaming` and `Workers` log to standard output (stdout) in [Serilog](https://serilog.net/) format. It is highly recommended to capture the standard output and save them for troubleshooting.
+By default, the `Gateway` and `Workers` log to standard output (stdout) in [Serilog](https://serilog.net/) format. It is highly recommended to capture the standard output and save them for troubleshooting.
 
 ```
 # Note these logs samples are formatted JSON for readability. The application will output non-formatted JSON logs
@@ -710,23 +710,25 @@ be accurately detected from the `media_url`, the job will not be chunked correct
 
 - **GET**
   - **Summary**: Healthcheck
-  - **Operation ID**: `Healthcheck`
   - **Description**: 
     Returns a 200 when the `Gateway` application is healthy and ready to receive requests. This endpoint is also available in the `Workers` application.
-  - **Tags**: `API Reference - Healthcheck`
   - **Responses**:
     - **200**: Healthcheck Success
 
 #### `/speechtotext/v1/jobs/{id}`
 
 - **Parameters**:
-  - `$ref: 'shared.yaml#/parameters/JobId'`
+    - **JobId**  
+    - **Name**: `id`
+    - **In**: `path`
+    - **Description**: Rev AI API Job Id
+    - **Required**: `true`
+    - **Schema**:  
+        - **Type**: `string`
 
 - **GET**
   - **Summary**: Get Job By Id
-  - **Operation ID**: `GetJobById`
   - **Description**: Returns information about a transcription job.
-  - **Tags**: `API Reference - Jobs`
   - **Responses**:
     - **200**: Transcription Job Details
       - **Content**: `application/json`
@@ -739,10 +741,8 @@ be accurately detected from the `media_url`, the job will not be chunked correct
 
 - **DELETE**
   - **Summary**: Delete Job by Id
-  - **Operation ID**: `DeleteJobById`
   - **Description**: 
     Deletes a transcription job. All data related to the job, such as input media and transcript, will be permanently deleted. A job can only be deleted once it's completed (either with success or failure).
-  - **Tags**: `API Reference - Jobs`
   - **Responses**:
     - **204**: Job was successfully deleted.
     - **404**: `$ref: 'shared.yaml#/responses/JobNotFound'`
@@ -766,10 +766,8 @@ be accurately detected from the `media_url`, the job will not be chunked correct
 
 - **GET**
   - **Summary**: Get List of Jobs
-  - **Operation ID**: `GetListOfJobs`
   - **Description**: 
     Gets a list of transcription jobs submitted within the last 24 hours in reverse chronological order up to the provided `limit` number of jobs per call. **Note:** Jobs older than 24 hours will not be listed. Pagination is supported via passing the last job `id` from a previous call into `starting_after`.
-  - **Tags**: `API Reference - Jobs`
   - **Parameters**:
     - `$ref: 'shared.yaml#/parameters/JobListLimit'`
     - `$ref: 'shared.yaml#/parameters/JobListStartingAfter'`
@@ -788,10 +786,8 @@ be accurately detected from the `media_url`, the job will not be chunked correct
 
 - **POST**
   - **Summary**: Submit Transcription Job
-  - **Operation ID**: `SubmitTranscriptionJob`
   - **Description**: 
     Starts an asynchronous job to transcribe speech-to-text for a media file. Media files can be specified by including a public URL to the media in the transcription job `options`.
-  - **Tags**: `API Reference - Jobs`
   - **Request Body**:
     - **Description**: Transcription Job Options
     - **Required**: `true`
@@ -824,10 +820,8 @@ be accurately detected from the `media_url`, the job will not be chunked correct
 
 - **GET**
   - **Summary**: Get Transcript By Id
-  - **Operation ID**: `GetTranscriptById`
   - **Description**: 
     Returns the transcript for a completed transcription job. The transcript can be returned as either JSON or plaintext format. Transcript output format can be specified in the `Accept` header. Returns JSON by default.
-  - **Tags**: `API Reference - Transcript`
   - **Parameters**:
     - `$ref: '#/components/parameters/acceptTranscript'`
   - **Responses**:
