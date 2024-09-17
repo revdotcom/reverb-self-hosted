@@ -726,72 +726,72 @@ be accurately detected from the `media_url`, the job will not be chunked correct
         - **Type**: `string`
 
 - **GET**
-  - **Summary**: Get Job By Id
-  - **Description**: Returns information about a transcription job.
-  - **Responses**:
-    - **200**: Transcription Job Details
-      - **Content**: `application/json`
-      - **Schema**: 
-| Field | Type | Description | Example |
-|-------|------|-------------|---------|
-| id | string | Id of the job | "Umx5c6F7pH7r" |
-| status | string | Current status of the job. Enum: "in_progress", "transcribed", "failed" | "transcribed" |
-| created_on | string | ISO 8601 timestamp of when the job was created | "2018-05-05T23:23:22.29Z" |
-| completed_on | string | ISO 8601 timestamp of when the job was completed | "2018-05-05T23:45:13.41Z" |
-| metadata | string | Optional metadata that was provided during job submission | "{"order_id": "123456"}" |
-| name | string | Name of the file provided. Present when the file name is available | "sample_audio.mp3" |
-| duration_seconds | number | Duration of the file in seconds. Null if the file could not be retrieved or there was not a valid media file | 324.36 |
-| failure | string | Simple reason of why the transcription job failed. Enum: "internal_processing", "duration_exceeded", "duration_too_short", "invalid_media", "empty_media", "transcription", "billing" | "download_failure" |
-| failure_detail | string | Detailed explanation of the failure | "Failed to download media file. Please check your url and file type" |
-| type | string | Type of speech recognition performed. Always "async" | "async" |
-| callback_url | string | URL to invoke when processing is complete | "https://example.com/callback" |
-| media_url | string | Media url provided by the job submission | "https://www.rev.ai/FTC_Sample_1.mp3" |
-| skip_diarization | boolean | User-supplied preference on whether to skip diarization | true |
-| skip_punctuation | boolean | User-supplied preference on whether to skip punctuation | true |
-| remove_disfluencies | boolean | User-supplied preference on whether to remove disfluencies | true |
-| filter_profanity | boolean | User-supplied preference on whether to remove explicit words | true |
-| speaker_channels_count | integer | User-supplied number of speaker channels in the audio. Min: 1, Max: 8 | 2 |
-| diarization_type | string | Diarization model to use for the speech-to-text job. Enum: "standard", "premium" | "premium" |
+    - **Summary**: Get Job By Id
+    - **Description**: Returns information about a transcription job.
+    - **Responses**:
+        - **200**: Transcription Job Details
+            - **Content**: `application/json`
+            - **Schema**:
+                | Field | Type | Description | Example |
+                |-------|------|-------------|---------|
+                | id | string | Id of the job | "Umx5c6F7pH7r" |
+                | status | string | Current status of the job. Enum: "in_progress", "transcribed", "failed" | "transcribed" |
+                | created_on | string | ISO 8601 timestamp of when the job was created | "2018-05-05T23:23:22.29Z" |
+                | completed_on | string | ISO 8601 timestamp of when the job was completed | "2018-05-05T23:45:13.41Z" |
+                | metadata | string | Optional metadata that was provided during job submission | "{"order_id": "123456"}" |
+                | name | string | Name of the file provided. Present when the file name is available | "sample_audio.mp3" |
+                | duration_seconds | number | Duration of the file in seconds. Null if the file could not be retrieved or there was not a valid media file | 324.36 |
+                | failure | string | Simple reason of why the transcription job failed. Enum: "internal_processing", "duration_exceeded", "duration_too_short", "invalid_media", "empty_media", "transcription", "billing" | "download_failure" |
+                | failure_detail | string | Detailed explanation of the failure | "Failed to download media file. Please check your url and file type" |
+                | type | string | Type of speech recognition performed. Always "async" | "async" |
+                | callback_url | string | URL to invoke when processing is complete | "https://example.com/callback" |
+                | media_url | string | Media url provided by the job submission | "https://www.rev.ai/FTC_Sample_1.mp3" |
+                | skip_diarization | boolean | User-supplied preference on whether to skip diarization | true |
+                | skip_punctuation | boolean | User-supplied preference on whether to skip punctuation | true |
+                | remove_disfluencies | boolean | User-supplied preference on whether to remove disfluencies | true |
+                | filter_profanity | boolean | User-supplied preference on whether to remove explicit words | true |
+                | speaker_channels_count | integer | User-supplied number of speaker channels in the audio. Min: 1, Max: 8 | 2 |
+                | diarization_type | string | Diarization model to use for the speech-to-text job. Enum: "standard", "premium" | "premium" |
 
       - **Examples**:
         - **New Job**: 
-```{
-"id": "Umx5c6F7pH7r",
-"status": "in_progress",
-"language": "en",
-"created_on": "2018-05-05T23:23:22.29Z"
-}
-```
+            ```{
+            "id": "Umx5c6F7pH7r",
+            "status": "in_progress",
+            "language": "en",
+            "created_on": "2018-05-05T23:23:22.29Z"
+            }
+            ```
         - **Transcribed Job**: 
-```{
-"id": "Umx5c6F7pH7r",
-"status": "transcribed",
-"language": "en",
-"created_on": "2018-05-05T23:23:22.29Z",
-"completed_on": "2018-05-05T23:45:13.41Z",
-"callback_url": "https://www.example.com/callback",
-"duration_seconds": 356.24,
-"media_url": "https://www.rev.ai/FTC_Sample_1.mp3"
-}
-```
+            ```{
+            "id": "Umx5c6F7pH7r",
+            "status": "transcribed",
+            "language": "en",
+            "created_on": "2018-05-05T23:23:22.29Z",
+            "completed_on": "2018-05-05T23:45:13.41Z",
+            "callback_url": "https://www.example.com/callback",
+            "duration_seconds": 356.24,
+            "media_url": "https://www.rev.ai/FTC_Sample_1.mp3"
+            }
+            ```
         - **Failed Job**: 
-```{
-"id": "Umx5c6F7pH7r",
-"status": "failed",
-"language": "en",
-"created_on": "2018-05-05T23:23:22.29Z",
-"completed_on": "2018-05-05T23:23:24.11Z",
-"failure": "download_failure",
-"failure_detail": "Failed to download media file. Please check your url and file type"
-}
-```
+            ```{
+            "id": "Umx5c6F7pH7r",
+            "status": "failed",
+            "language": "en",
+            "created_on": "2018-05-05T23:23:22.29Z",
+            "completed_on": "2018-05-05T23:23:24.11Z",
+            "failure": "download_failure",
+            "failure_detail": "Failed to download media file. Please check your url and file type"
+            }
+            ```
     - **404**: 
-```{
-"type": "https://www.rev.ai/api/v1/errors/job-not-found",
-"title": "could not find job",
-"status": 404
-}
-```
+        ```{
+        "type": "https://www.rev.ai/api/v1/errors/job-not-found",
+        "title": "could not find job",
+        "status": 404
+        }
+        ```
 
 - **DELETE**
   - **Summary**: Delete Job by Id
