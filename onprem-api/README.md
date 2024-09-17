@@ -284,6 +284,19 @@ Each image will store their files with a given Blob prefix. The `Gateway` will h
 
 The `Gateway` and `Workers` by default have a Redis-backed database implementation built in. **Note this database's items expire after 24 hours.**
 
+## Database
+
+On Prem also introduces the concept of the `job` data model. To have these models persist for 24 hours, a NoSQL-styled document database is required. Examples of cloud solutions similar to the database provided include `DynamoDb` and `MongoDb` The required operations and functionalities for the document database are the basic CRUD operations:
+
+- Create Object
+- Update Object
+- Get Object(s)
+- Delete Objects
+- Indexing Objects
+- Primary Key
+
+The `Gateway` and `Workers` have a Redis-backed database implementation built in. **Note this database's items expire after 24 hours.**
+
 ## Message Queue
 
 Communication between the two services is done via a messaging queue. The queue and messages supports the following:
@@ -299,7 +312,7 @@ The `Gateway` and `Workers` by default have a Redis-backed message queue system 
 
 ## License Expiry
 
-[TODO]
+**[TODO]**
 
 # Using On Prem
 
@@ -319,7 +332,7 @@ Failed `POST` body:
 
 ## Submitting a Job for Transcription
 
-Once both the `Gateway` and `Workers` images are running, you can submit a file by making a `POST` request to `/speechtotext/v1/jobs` endpoint of the `Gateway` container with the proper parameters in the request body. Once the job is submitted, the user can query the status of the job and transcript via the API exposed in the `Gateway`. Outlined in the section titled `API Reference` is an overview of the available endpoints and features for On Prem V2. As On Prem V2 is meant to keep near feature parity with the Cloud API, the precise API and model documentation can be found in the [Cloud API Reference](https://rev.ai/docs).
+Once both the `Gateway` and `Workers` images are running, you can submit a file by making a `POST` request to `/speechtotext/v1/jobs` endpoint of the `Gateway` container with the proper parameters in the request body. Once the job is submitted, the user can query the status of the job and transcript via the API exposed in the `Gateway`. Outlined in the section titled `API Reference` is an overview of the available endpoints and features for On Prem. As On Prem is meant to keep near feature parity with the Cloud API, the precise API and model documentation can be found in the [Cloud API Reference](https://rev.ai/docs).
 
 ## Gateway Workflow
 
@@ -665,40 +678,11 @@ In the case of unexpected failure when the `Workers` containers fail to return a
 2021-09-14 01:10:50.443	Message received with delay 300.1 seconds
 ```
 
-## Streaming
-
-### Processing Failures
-
-The `Streaming` containers are a stateless application. All failures will result in a non 1000 close code as detailed above. Some errors such as `4002: Bad Request` are expected. To investigate any other failures we
-recommend you find the RevRequestId for your streaming request and look at any associated logs from the `Streaming` and `Gateway` containers. Finding this RevRequestId is easiest done finding the associated API invocation log for your request.
-These logs will look like:
-
-```
-2022-10-03 13:45:14.520	Invoked "GET" "https://api.rev.ai/speechtotext/v1/stream?access_token=abcd*&content_type=audio/x-raw;layout=interleaved;rate=48000;format=S16LE;channels=1&metadata=test", returned 101
-```
-
-The RevRequestId from this log can then be used to find all other logs associated with the stream from both the `Gateway` and `Streaming` containers.
-
-### Job Logs
-
-All jobs processed by the `Workers` also write logs to a tmp file on disk in addition to stdout. The location of the job log for the file can be found via the log messages. This job log can be useful for further debugging if needed.
-
-```
-2021-09-14 06:56:11.605	Created transcription log: "/tmp/tmpjOh7j6.tmp"
-```
-
 # Cloud Differences
-
-## Gateway Sandbox
-For integration testing purposes, we have the `Gateway` sandbox, which can be used to test the `Gateway` without the `Workers` running. The sandbox will be deployed as a seperate Docker image with the tag:
-- sandbox-gateway-2.1.4
-
-This `Gateway` sandbox will provide the same functionality as the regular `Gateway`, but will quickly return a dummy transcript regardless of audio provided. Jobs created by the `Gateway` sandbox will go through the same workflow, except the actual transcription step. Furthermore, all billing requests will by default be sent to a seperate billing endpoint:
-- `https://api.rev.ai/external/v2/sandbox/billing`
 
 ## API
 
-On Prem V2 tries to keep its API interface as similar to Rev AI's Cloud API as possible, however there are a few differences:
+On Prem tries to keep its API interface as similar to Rev AI's Cloud API as possible, however there are a few differences:
 
 - No Access Token required per request. Instead Access Token is provided on container startup.
 - `media_url` must be provided for submission. `multiform/form-data` submission does not exist.
@@ -711,162 +695,11 @@ On Prem V2 tries to keep its API interface as similar to Rev AI's Cloud API as p
 
 ## Workflow
 
-The workflow of a On Prem V2 has a few key differences compared to Rev AI's Cloud solution:
-
-- On Prem V2 performs preliminary duration detection using ffprobe on the provided `media_url`. If the duration metadata cannot
-be accurately detected from the `media_url`, the job will not be chunked correctly which may increase turn around time
-- Transcript is not available until billing completes
-- Maximum time the job can spend in the workflow is 2 hours and 15 minutes before it fails with `internal_processing`
-
-## Streaming API
-
-On Prem V2 tries to keep its API interface as similar to Rev AI's Cloud API as possible, however there are a few differences:
-
-- No Access Token required per request. Instead Access Token is provided on container startup.
-- Jobs are not created for Streaming requests and no information about the stream is persisted to any storage service
-- Only allowed language is English
-- Custom Vocabularies are not supported
-
-
-
-## Logging
-
-By default, the `Gateway` and `Workers` log to standard output (stdout) in [Serilog](https://serilog.net/) format. It is highly recommended to capture the standard output and save them for troubleshooting.
-
-```
-# Note these logs samples are formatted JSON for readability. The application will output non-formatted JSON logs
-{
-    "Timestamp": "2021-09-14T17:47:06.6900487+00:00",
-    "Level": "Information",
-    "MessageTemplate": "Starting {serviceName}",
-    "RenderedMessage": "Starting \"inboundQueueProcessor\"",
-    "Properties": {
-        "serviceName": "inboundQueueProcessor",
-        "SourceContext": "Rev.Common.AspNetCore.Infrastructure.IntervalTaskHostedService`1[[Rev.Infrastructure.InboundQueue.IInboundQueueProcessor, Rev.Infrastructure.InboundQueue, Version=3.1.0.0, Culture=neutral, PublicKeyToken=null]]",
-        "ThreadId": 4
-    }
-}
-{
-    "Timestamp": "2021-09-14T19:48:08.2238552+00:00",
-    "Level": "Information",
-    "MessageTemplate": "Starting ctm",
-    "RenderedMessage": "Starting ctm",
-    "Properties": {
-        "SourceContext": "Rev.Revspeech.Transcription.TranscriptionJob`2[[Rev.Revspeech.Transcription.Requests.QueueTranscriptionJobRequest, Revspeech, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null],[Rev.Revspeech.Transcription.Responses.QueueTranscriptionJobResponse, Revspeech, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
-        "estimatedCtmDurationSeconds": 135,
-        "originalFileName": "SCHADE & MICHALUK audio_only.m4a",
-        "jobId": "chunks.w.15873054.t.5493676.63c3471d-da64-41e3-881e-02bea6fe3e81.7",
-        "sequenceId": null,
-        "messageId": "ac4524ea-a1ef-41b2-a6c8-08b40dcb93ac",
-        "RevRequestId": "2692232a-4e13-41ed-b22d-15eb3a540d2c",
-        "RevRequestIdParent": "2692232a-4e13-41ed-b22d-15eb3a540d2c",
-        "RevRequestIdRoot": "2692232a-4e13-41ed-b22d-15eb3a540d2c",
-        "ThreadId": 15
-    }
-}
-```
-
-### Rev Request Id
-
-Some of the log messages contain a series of `RevRequestId`. The `RevRequestId` track the context across each job execution. One can filter by the `RevRequestId` to get all of the logs for a specific job.
-
-### Log Level
-
-All log messages come with a log `Level` property. The ones exposed are `Info`, `Warning`, and `Error`. `Info` level logs are general level log messages that help trace application execution. `Warning` logs are logged when there is something that is potentially of concern and should be looked at. `Error` logs are unexpected and signal unexpected application state.
-
-### Log Level Overrides
-
-It is possible to override the level at which logs are printed, via the `Runner__LogLevelOverrides__<namespace>` property. By providing a specific namespace, you can override the log level for that specific namespace.
-You can find the `<namespace>` on the log itself, under the `SourceContext` property
-
-Examples:
-```
-Runner__LogLevelOverrides__Rev.Common.AspNetCore.Diagnostics.MemoryDiagnosticsService=3
-Runner__LogLevelOverrides__Rev.Revspeech.Workers.WorkerProcessMonitoringHostedService=3
-Runner__LogLevelOverrides__Rev.Revspeech.Workers.WorkerReadLimiterManager=3
-Runner__LogLevelOverrides__Rev.Common.AspNetCore.Diagnostics.SwapMonitoringHostedService=3
-```
-
-## Gateway
-
-### Submission
-
-When a `POST` request is made, a job is created and is scheduled to be executed in a workflow. You should see this log message appear, as well as a successful 200 response.
-
-```
-# Sample Log Message
-2021-09-14 12:28:33.011	Adding to seqqueue "revspeechapi"
-```
-
-```
-# 200 Response
-{
-    "id": "Umx5c6F7pH7r",
-    "status": "in_progress",
-    "created_on": "2018-05-05T23:23:22.29Z",
-    "type": "async"
-}
-```
-
-If the endpoint returns a 500, you should check the logs for any exceptions thrown.
-
-```
-2021-09-13 07:33:13.700	Middleware uncaught exception "Exception of type 'ArgumentException'"
-```
-
-It is possible in the rare case that the job could be created but not scheduled during this step, A 200 success response is the indicator whether the job was successfully submitted and is processing. After 24 hours, the job will expire from storage.
-
-### Workflow
-
-The transcription job is scheduled to run through a series of steps before and after transcription. This is collectively know as the job `workflow`. The `workflow` has the following steps in this order:
-
-1. Checking for transcription expiration
-2. Preliminary Duration Detection
-3. Transcription
-4. Billing
-5. Callback
-
-Steps can be skipped depending on the state of the job. For example, if the job is already scheduled to be transcribed, a subsequent `workflow` will not submit the job for transcription. `Workflow` executions can fail at any step for any reason, however after a 10 minute delay, a scheduled `workflow` will be retried until 24 hours or the job is expired, whichever comes first.
-
-```
-2021-09-13 08:51:38.281	callback execution failed
-```
-
-### Processing Results
-
-When the `Workers` finish processing, the intermediate files are sent to the `Gateway` via the queue (`Revspeech__CompletionQueue`) to be combined and processed into a final transcript. During this step, if the `Gateway` fails to read from the queue or fails to process the intermediate files, the item in the queue will follow invisibility timeout and be avaialble to be attempted to be processed again in 5 minutes. Once transcript is processed, another workflow is scheduled and follows the workflow processing rules.
-
-```
-2021-09-13 08:45:38.281 Read from the queue failed
-...
-2021-09-13 08:47:38.281 Failed while assemblying the chunked job result
-...
-2021-09-13 08:50:38.281 Exception while publishing the result
-```
-
-## Workers
-
-### Processing Failures (Expected)
-
-The `Workers` containers are a stateless application. Most failures will result in a failure message being returned to the `Gateway` and the job subsequently failed. There are expected errors like invalid media or invalid audio duration. In the expected cases, the failure log message `"Transcription failed"` will be logged at the `Info` level.
-
-### Processing Failure (Unexpected)
-
-In the case of unexpected failure when the `Workers` containers fail to return a response to the queue, the queue message being processed will have its invisibility timeout and be available to process again. A common message to see in this case is `"Message received with delay"`. A delay of of 300 seconds is expected as the invisibility timeout is set to 5 minutes. If the delay continues to grow larger and larger, this indicates that the message is continually failing to be processed unexpectedly.
-
-```
-2021-09-14 01:10:50.443	Message received with delay 300.1 seconds
-```
-
-## Workflow
-
 The workflow of a On Prem has a few key differences compared to Rev AI's Cloud solution:
 
 - On Prem performs preliminary duration detection using ffprobe on the provided `media_url`. If the duration metadata cannot
 be accurately detected from the `media_url`, the job will not be chunked correctly which may increase turn around time
-- Transcript is not available until billing completes
 - Maximum time the job can spend in the workflow is 2 hours and 15 minutes before it fails with `internal_processing`
-
 
 
 # On Prem API Endpoints
