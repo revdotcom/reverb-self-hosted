@@ -731,7 +731,8 @@ be accurately detected from the `media_url`, the job will not be chunked correct
   - **Responses**:
     - **200**: Transcription Job Details
       - **Content**: `application/json`
-      - **Schema**: ```| Field | Type | Description | Example |
+      - **Schema**: 
+```| Field | Type | Description | Example |
 |-------|------|-------------|---------|
 | id | string | Id of the job | "Umx5c6F7pH7r" |
 | status | string | Current status of the job. Enum: "in_progress", "transcribed", "failed" | "transcribed" |
@@ -753,13 +754,16 @@ be accurately detected from the `media_url`, the job will not be chunked correct
 | diarization_type | string | Diarization model to use for the speech-to-text job. Enum: "standard", "premium" | "premium" |
 ```
       - **Examples**:
-        - **New Job**: ```{
+        - **New Job**: 
+```{
 "id": "Umx5c6F7pH7r",
 "status": "in_progress",
 "language": "en",
 "created_on": "2018-05-05T23:23:22.29Z"
-}```
-        - **Transcribed Job**: ```{
+}
+```
+        - **Transcribed Job**: 
+```{
 "id": "Umx5c6F7pH7r",
 "status": "transcribed",
 "language": "en",
@@ -768,8 +772,10 @@ be accurately detected from the `media_url`, the job will not be chunked correct
 "callback_url": "https://www.example.com/callback",
 "duration_seconds": 356.24,
 "media_url": "https://www.rev.ai/FTC_Sample_1.mp3"
-}```
-        - **Failed Job**: ```{
+}
+```
+        - **Failed Job**: 
+```{
 "id": "Umx5c6F7pH7r",
 "status": "failed",
 "language": "en",
@@ -777,12 +783,15 @@ be accurately detected from the `media_url`, the job will not be chunked correct
 "completed_on": "2018-05-05T23:23:24.11Z",
 "failure": "download_failure",
 "failure_detail": "Failed to download media file. Please check your url and file type"
-}```
-    - **404**: ```{
+}
+```
+    - **404**: 
+```{
 "type": "https://www.rev.ai/api/v1/errors/job-not-found",
 "title": "could not find job",
 "status": 404
-}```
+}
+```
 
 - **DELETE**
   - **Summary**: Delete Job by Id
