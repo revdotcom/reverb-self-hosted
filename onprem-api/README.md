@@ -1,5 +1,3 @@
-Welcome to the documentation for the on-premise asynchronous transcription solution. This guide will help
-
 # Knowledge Requirements
 
 This guide is written for developers and is best understood by those with previous knowledge of the following technologies:
