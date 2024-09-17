@@ -1,0 +1,68 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+
+  onprem-gateway:
+    image: 414502572119.dkr.ecr.us-west-2.amazonaws.com/revspeech-onprem:open-gateway-3.14.0
+    depends_on:
+      - redis
+    ports:
+      - "57350:80"
+    environment:
+      - Initialization__AccessToken=[REVAI_API_KEY]
+      - Initialization__CallBackUrl=https://9253-99-156-189-71.ngrok-free.app
+      - Redis__Database=3
+      - Redis__Endpoints=host.docker.internal
+      - Revdiarization__SubmissionQueue=local-dev-submission-revdiarization
+      - Revspeech__CompletionQueue=local-dev-gateway
+      - Revspeech__SubmissionQueue=local-dev-submission
+      - Revspeech__SubmissionQueueBrazilianPortuguese=local-dev-submission-ptbr
+      - Revspeech__SubmissionQueueFrench=local-dev-submission-fr
+      - Revspeech__SubmissionQueueGerman=local-dev-submission-de
+      - Revspeech__SubmissionQueueItalian=local-dev-submission-it
+      - Revspeech__SubmissionQueueMultilingualEnglishSpanish=local-dev-submission-m-en-es
+      - Revspeech__SubmissionQueueSpanish=local-dev-submission-es
+      - RevWhisper__Transcription__DefaultTranscriber__SubmissionQueueUrl=local-dev-submission-revwhisper
+      - Runner_LogTemplate=[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}    {Properties}{NewLine}{Exception}
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+  
+  onprem-worker:
+    image: 414502572119.dkr.ecr.us-west-2.amazonaws.com/revspeech-onprem:open-en-workers-3.21.0
+    depends_on:
+      - redis
+    ports:
+      - "57360:80"
+    environment:
+      - AccessToken=[REVAI_API_KEY]
+      - APPLICATIONNAME=revspeech
+      - ASPNETCORE_ENVIRONMENT=onprem
+      - InboundQueueName=local-dev-submission
+      - RedisConfig__Database=3
+      - RedisConfig__Endpoints=host.docker.internal
+      - RedisConfig__KeyPrefix=onpremv2
+      - Runner_LogTemplate=[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}    {Properties}{NewLine}{Exception}
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus:/etc/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yaml'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    restart: always
