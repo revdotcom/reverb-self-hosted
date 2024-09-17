@@ -1,3 +1,4 @@
+Welcome to the documentation for the on-premise asynchronous transcription solution. This guide will help
 
 # Knowledge Requirements
 
@@ -16,12 +17,12 @@ We recommend using the On Prem solution with an Intel architecture.
 The images are under the public Docker Hub repository, `revdotcom/revai-onprem`.
 
 ```
-$ docker pull revdotcom/revai:<TAG_VERSION>
+$ docker pull revdotcom/revai-onprem:<TAG_VERSION>
 ```
 
 ## Available Tags
 
-The On Prem deployment is split into three images: `Workers` and `Gateway`.
+The On Prem deployment is split into two images: `Workers` and `Gateway`.
 As of this documentation, the following tags are the latest available tags:
 - open-gateway-3.15.0
 - open-workers-3.21.0
@@ -44,7 +45,7 @@ If you encounter any issues when downloading please reach out to our team by ema
 
 #### Queue Environment Configuration
 
-At least one of the following `Worker` submission queue environment variable is required. This ensures that the `Gateway` is able to submit transcription jobs.
+Following `Worker` submission queue environment variable is required. This ensures that the `Gateway` is able to submit transcription jobs.
 
 | Variable | Type | Default | Description |
 |---|---|---|---|
@@ -245,7 +246,7 @@ Intermediate transcript files and job data are stored in the provided Redis inst
 
 # Starting the Containers
 
-There are multiple ways to start the containers: `docker run`, `docker-compose` or `kubernetes`. In this guide we will provide examples for `docker run`.
+There are multiple ways to start the containers: `docker run`, `docker-compose` or `kubernetes`. In this guide we will provide examples for `docker run` and `docker-compose`.
 
 ## Starting From the Docker Run Command
 
@@ -259,6 +260,10 @@ revdotcom/revai:gateway-<TAG_VERSION>
 # Workers
 $ docker run -e AccessToken=<YOUR_REV_AI_ACCESS_TOKEN> -e RedisConfig__Endpoints=<YOUR_REDIS_ENDPOINT> -e RedisConfig__KeyPrefix=<YOUR_KEY_PREFIX> -e  RedisConfig__Database=<YOUR_REDIS_DATABASE> -e InboundQueueName=revspeech-submission revdotcom/revai:workers-<TAG_VERSION>
 ```
+
+## Starting From Docker Compose
+
+See the instructions in the [docker-compose](/onprem-api/local-environment/docker-compose) README.
 
 ## Container User
 For the sake of security, the containers by default run under non-root users predefined by the image. For certain operating systems, non-root users by default are not able to bind port 80 for `localhost`, which the application requires by default.
