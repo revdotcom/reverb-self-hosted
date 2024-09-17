@@ -732,7 +732,7 @@ be accurately detected from the `media_url`, the job will not be chunked correct
     - **200**: Transcription Job Details
       - **Content**: `application/json`
       - **Schema**: 
-```| Field | Type | Description | Example |
+| Field | Type | Description | Example |
 |-------|------|-------------|---------|
 | id | string | Id of the job | "Umx5c6F7pH7r" |
 | status | string | Current status of the job. Enum: "in_progress", "transcribed", "failed" | "transcribed" |
@@ -752,7 +752,7 @@ be accurately detected from the `media_url`, the job will not be chunked correct
 | filter_profanity | boolean | User-supplied preference on whether to remove explicit words | true |
 | speaker_channels_count | integer | User-supplied number of speaker channels in the audio. Min: 1, Max: 8 | 2 |
 | diarization_type | string | Diarization model to use for the speech-to-text job. Enum: "standard", "premium" | "premium" |
-```
+
       - **Examples**:
         - **New Job**: 
 ```{
