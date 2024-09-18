@@ -755,7 +755,7 @@ be accurately detected from the `media_url`, the job will not be chunked correct
 
       - **Examples**:
         - **New Job**: 
-            ```
+            ```json
             {
                 "id": "Umx5c6F7pH7r",
                 "status": "in_progress",
@@ -764,7 +764,7 @@ be accurately detected from the `media_url`, the job will not be chunked correct
             }
             ```
         - **Transcribed Job**: 
-            ```
+            ```json
             {
                 "id": "Umx5c6F7pH7r",
                 "status": "transcribed",
@@ -777,7 +777,7 @@ be accurately detected from the `media_url`, the job will not be chunked correct
             }
             ```
         - **Failed Job**: 
-            ```
+            ```json
             {
                 "id": "Umx5c6F7pH7r",
                 "status": "failed",
@@ -789,7 +789,7 @@ be accurately detected from the `media_url`, the job will not be chunked correct
             }
             ```
     - **404**: 
-        ```
+        ```json
         {
             "type": "https://www.rev.ai/api/v1/errors/job-not-found",
             "title": "could not find job",
@@ -806,7 +806,7 @@ be accurately detected from the `media_url`, the job will not be chunked correct
     - **404**:
         - **Content**: `application/problem+json`
         - **Examples**:
-            ```
+            ```json
             {
                 "type": "https://rev.ai/api/v1/errors/job-not-found",
                 "title": "could not find job",
@@ -843,16 +843,21 @@ be accurately detected from the `media_url`, the job will not be chunked correct
         - **200**: List of Rev AI Transcription Jobs
             - **Content**: `application/json`
             - **Schema**:
-            | Field | Type | Description |
-            |-------|------|-------------|
-            | (root) | array | An array of AsyncTranscriptionJob objects |
+                | Field | Type | Description |
+                |-------|------|-------------|
+                | (root) | array | An array of Async Transcription Job objects |
 
     - **400**: Bad Request
       - **Content**: `application/json`
-      - **Schema**: `$ref: 'shared.yaml#/schemas/BadRequestProblemDetails'`
-      - **Examples**:
-        - **Limit Above Max Value**: `$ref: 'shared.yaml#/responses/BadLimitResponse'`
-        - **Invalid Job Id**: `$ref: 'shared.yaml#/responses/InvalidStartingAfterResponse'`
+      - **Schema**: 
+        | Field | Type | Description |
+        |-------|------|-------------|
+        | type | string | A URI reference that identifies the problem type. |
+        | title | string | A short, human-readable summary of the problem type. |
+        | status | integer | The HTTP status code (typically 400 for bad request). |
+        | detail | string | A human-readable explanation specific to this occurrence of the problem. |
+        | instance | string | A URI reference that identifies the specific occurrence of the problem. |
+        | errors | object | Additional details about the errors that caused the bad request. |
 
 - **POST**
   - **Summary**: Submit Transcription Job
@@ -862,15 +867,51 @@ be accurately detected from the `media_url`, the job will not be chunked correct
     - **Description**: Transcription Job Options
     - **Required**: `true`
     - **Content**: `application/json`
-    - **Schema**: `$ref: '#/components/schemas/SubmitJobMediaUrlOptions'`
+    - **Schema**:
+        | Field | Type | Description | Required | Example |
+        |-------|------|-------------|----------|---------|
+        | media_url | string | Direct download media url. Ignored if submitting job from file. Note: Media files longer than 17 hours are not supported for English transcription, and media files longer than 12 hours are not supported for non-English transcription. For non-English jobs, expected turnaround time can be up to 6 hours. | Yes | "https://www.rev.ai/FTC_Sample_1.mp3" |
+        | metadata | string | Optional metadata provided during submission. This field is attached to the external billing request. Do not put sensitive information in this field | No | "{"order_id": "123456"}" |
+        | callback_url | string | Optional callback url to invoke when processing is complete. If provided, it will be visible in the response. | No | "https://example.com/callback" |
+        | skip_diarization | boolean | Specify if speaker diarization will be skipped by the speech engine | No | true |
+        | skip_punctuation | boolean | Specify if "punct" type elements will be skipped by the speech engine. For JSON outputs, this includes removing spaces. For text outputs, words will still be delimited by a space | No | true |
+        | remove_disfluencies | boolean | When set to true, disfluencies (currently only 'ums' and 'uhs') will not appear in the transcript. | No | true |
+        | filter_profanity | boolean | When enabled, approximately 600 profanities will be filtered. Matching words will have all characters replaced by asterisks except for the first and last. | No | true |
+        | speaker_channels_count | integer | Specifies the total number of unique speaker channels in the audio. Each channel will be transcribed separately. | No | 2 |
+        | custom_vocabularies | array | Specify a collection of custom vocabulary to be used for this job. Currently only available for English transcription jobs. | No | See example below |
+        | language | string | ISO 639-1 language code (or ISO 639-3 for Mandarin) specifying the language to transcribe. | No | "en" |
+        | estimated_duration_seconds | number | When provided, skips the FFProbe step and uses this value to chunk the audio instead. Must be positive when provided. | No | 300 |
+        | diarization_type | string | Diarization model to use for the speech-to-text job. Options: "standard" or "premium" | No | "premium" |
   - **Responses**:
     - **200**: Transcription Job Details
       - **Content**: `application/json`
-      - **Schema**: `$ref: '#/components/schemas/AsyncTranscriptionJob'`
-      - **Example**: `$ref: '#/components/examples/NewJob'`
+      - **Schema**:
+        | Field | Type | Description |
+        |-------|------|-------------|
+        | id | string | Id of the job | "Umx5c6F7pH7r" |
+        | status | string | Current status of the job. Enum: "in_progress", "transcribed", "failed" | "transcribed" |
+        | created_on | string | ISO 8601 timestamp of when the job was created | "2018-05-05T23:23:22.29Z" |
+        | metadata | string | Optional metadata that was provided during job submission | "{"order_id": "123456"}" |
+        | name | string | Name of the file provided. Present when the file name is available | "sample_audio.mp3" |
+      - **Example**: 
+        ```json
+        {
+          "id": "Umx5c6F7pH7r",
+          "status": "in_progress",
+          "created_on": "2018-05-05T23:23:22.29Z"
+        }
+        ```
     - **400**: Bad Request
       - **Content**: `application/problem+json`
-      - **Schema**: `$ref: shared.yaml#/schemas/BadRequestProblemDetails`
+      - **Schema**: 
+        | Field | Type | Description |
+        |-------|------|-------------|
+        | type | string | A URI reference that identifies the problem type. |
+        | title | string | A short, human-readable summary of the problem type. |
+        | status | integer | The HTTP status code (typically 400 for bad request). |
+        | detail | string | A human-readable explanation specific to this occurrence of the problem. |
+        | instance | string | A URI reference that identifies the specific occurrence of the problem. |
+        | errors | object | Additional details about the errors that caused the bad request. |
       - **Example**:
         ```json
         {
@@ -886,19 +927,53 @@ be accurately detected from the `media_url`, the job will not be chunked correct
 #### `/speechtotext/v1/jobs/{id}/transcript`
 
 - **Parameters**:
-  - `$ref: 'shared.yaml#/parameters/JobId'`
+  - **Name**: `id`
+  - **In**: `path`
+  - **Description**: Rev AI API Job Id
+  - **Required**: `true`
+  - **Schema**:  
+      - **Type**: `string`
 
 - **GET**
   - **Summary**: Get Transcript By Id
   - **Description**: 
     Returns the transcript for a completed transcription job. The transcript can be returned as either JSON or plaintext format. Transcript output format can be specified in the `Accept` header. Returns JSON by default.
   - **Parameters**:
-    - `$ref: '#/components/parameters/acceptTranscript'`
+    | Field | Description |
+    |-------|-------------|
+    | Name | Accept |
+    | In | header |
+    | Description | MIME type specifying the transcription output format. Allowed values: `text/plain`, `application/vnd.rev.transcript.v1.0+json` |
+    | Required | false |
+    | Schema | string |
   - **Responses**:
     - **200**: Rev AI API Transcript
       - **Content**:
         - `application/vnd.rev.transcript.v1.0+json`
-        - **Schema**: `$ref: 'shared.yaml#/schemas/Transcript'`
+        - **Schema**:
+
+            Transcript
+
+            | Field | Type | Description |
+            |-------|------|-------------|
+            | monologues | array | An array of monologue objects, each representing a continuous speech by a single speaker |
+
+            Monologue
+
+            | Field | Type | Description |
+            |-------|------|-------------|
+            | speaker | integer | A numeric identifier for the speaker |
+            | elements | array | An array of element objects, representing the content of the speech |
+
+            Element
+
+            | Field | Type | Description |
+            |-------|------|-------------|
+            | type | string | The type of the element. Can be "text", "punct", or "unknown" |
+            | value | string | The content of the element |
+            | ts | number | The timestamp in seconds when this element starts |
+            | end_ts | number | The timestamp in seconds when this element ends |
+            | confidence | number | A confidence score between 0 and 1 for this element (only for "text" type) |
         - **Examples**:
           - Skip Diarization: `false` & Skip Punctuation: `false`:
             ```json
@@ -919,3 +994,48 @@ be accurately detected from the `media_url`, the job will not be chunked correct
         - **406**: Invalid Transcript Format
         - **404**: Job Not Found
 
+#### `/speechtotext/v1/jobs/{id}/captions`
+
+- **Parameters**:
+  - **Name**: `id`
+  - **In**: `path`
+  - **Description**: Rev AI API Job Id
+  - **Required**: `true`
+  - **Schema**:  
+      - **Type**: `string`
+
+- **GET**
+  - **Summary**: Get Captions
+  - **Description**: 
+    Returns the caption output for a transcription job. We currently support SubRip (SRT) and Web Video Text Tracks (VTT) output.
+    Caption output format can be specified in the `Accept` header. Returns SRT by default.
+    ***
+    Note: For streaming jobs, transient failure of our storage during a live session may prevent the final hypothesis elements from saving properly, resulting in an incomplete caption file. This is rare, but not impossible.
+  - **Parameters**:
+    | Parameter | Location | Description | Schema |
+    |-----------|----------|-------------|--------|
+    | id | path | The ID of the job | string |
+    | Accept | header | MIME type specifying the caption output format | string |
+    | speaker_channel | query | Identifies which channel of the job output to caption. Default is `null` which works only for jobs with no `speaker_channels_count` provided during job submission. | integer |
+  - **Responses**:
+    - **200**: Rev AI API Captions
+      - **Content**: `application/x-subrip`, `text/vtt`
+      - **Schema**:
+        | Field | Type | Description |
+        |-------|------|-------------|
+        | (root) | string | Caption content in the specified format |
+      - **Note**: Caption output format is required in the Accept header. The supported headers are `application/x-subrip` and `text/vtt`.
+    - **404**: Job Not Found
+    - **405**: Invalid Job Property Captions
+    - **406**: Invalid Caption Format
+    - **409**: Bad Request
+      - **Content**: `application/problem+json`
+      - **Schema**: 
+        | Field | Type | Description |
+        |-------|------|-------------|
+        | allowed_values | array | Allowed values for the job state |
+        | current_value | string | Current value of the job state |
+        | type | string | A URI reference that identifies the problem type |
+        | title | string | A short, human-readable summary of the problem type |
+        | detail | string | A human-readable explanation specific to this occurrence of the problem |
+        | status | integer | The HTTP status code |
