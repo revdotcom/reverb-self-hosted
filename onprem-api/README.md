@@ -755,41 +755,45 @@ be accurately detected from the `media_url`, the job will not be chunked correct
 
       - **Examples**:
         - **New Job**: 
-            ```{
-            "id": "Umx5c6F7pH7r",
-            "status": "in_progress",
-            "language": "en",
-            "created_on": "2018-05-05T23:23:22.29Z"
+            ```
+            {
+                "id": "Umx5c6F7pH7r",
+                "status": "in_progress",
+                "language": "en",
+                "created_on": "2018-05-05T23:23:22.29Z"
             }
             ```
         - **Transcribed Job**: 
-            ```{
-            "id": "Umx5c6F7pH7r",
-            "status": "transcribed",
-            "language": "en",
-            "created_on": "2018-05-05T23:23:22.29Z",
-            "completed_on": "2018-05-05T23:45:13.41Z",
-            "callback_url": "https://www.example.com/callback",
-            "duration_seconds": 356.24,
-            "media_url": "https://www.rev.ai/FTC_Sample_1.mp3"
+            ```
+            {
+                "id": "Umx5c6F7pH7r",
+                "status": "transcribed",
+                "language": "en",
+                "created_on": "2018-05-05T23:23:22.29Z",
+                "completed_on": "2018-05-05T23:45:13.41Z",
+                "callback_url": "https://www.example.com/callback",
+                "duration_seconds": 356.24,
+                "media_url": "https://www.rev.ai/FTC_Sample_1.mp3"
             }
             ```
         - **Failed Job**: 
-            ```{
-            "id": "Umx5c6F7pH7r",
-            "status": "failed",
-            "language": "en",
-            "created_on": "2018-05-05T23:23:22.29Z",
-            "completed_on": "2018-05-05T23:23:24.11Z",
-            "failure": "download_failure",
-            "failure_detail": "Failed to download media file. Please check your url and file type"
+            ```
+            {
+                "id": "Umx5c6F7pH7r",
+                "status": "failed",
+                "language": "en",
+                "created_on": "2018-05-05T23:23:22.29Z",
+                "completed_on": "2018-05-05T23:23:24.11Z",
+                "failure": "download_failure",
+                "failure_detail": "Failed to download media file. Please check your url and file type"
             }
             ```
     - **404**: 
-        ```{
-        "type": "https://www.rev.ai/api/v1/errors/job-not-found",
-        "title": "could not find job",
-        "status": 404
+        ```
+        {
+            "type": "https://www.rev.ai/api/v1/errors/job-not-found",
+            "title": "could not find job",
+            "status": 404
         }
         ```
 
@@ -802,10 +806,11 @@ be accurately detected from the `media_url`, the job will not be chunked correct
     - **404**:
         - **Content**: `application/problem+json`
         - **Examples**:
-            ```{
-            "type": "https://rev.ai/api/v1/errors/job-not-found",
-            "title": "could not find job",
-            "status": 404
+            ```
+            {
+                "type": "https://rev.ai/api/v1/errors/job-not-found",
+                "title": "could not find job",
+                "status": 404
             }
             ```
     - **409**: Bad Request
