@@ -799,10 +799,17 @@ be accurately detected from the `media_url`, the job will not be chunked correct
     Deletes a transcription job. All data related to the job, such as input media and transcript, will be permanently deleted. A job can only be deleted once it's completed (either with success or failure).
   - **Responses**:
     - **204**: Job was successfully deleted.
-    - **404**: `$ref: 'shared.yaml#/responses/JobNotFound'`
+    - **404**:
+        - **Content**: `application/problem+json`
+        - **Examples**:
+            ```{
+            "type": "https://rev.ai/api/v1/errors/job-not-found",
+            "title": "could not find job",
+            "status": 404
+            }
+            ```
     - **409**: Bad Request
       - **Content**: `application/problem+json`
-      - **Schema**: `$ref: 'shared.yaml#/schemas/InvalidStateDetails'`
       - **Examples**:
         - **In Progress Job**:
           ```json
@@ -823,14 +830,18 @@ be accurately detected from the `media_url`, the job will not be chunked correct
   - **Description**: 
     Gets a list of transcription jobs submitted within the last 24 hours in reverse chronological order up to the provided `limit` number of jobs per call. **Note:** Jobs older than 24 hours will not be listed. Pagination is supported via passing the last job `id` from a previous call into `starting_after`.
   - **Parameters**:
-    - `$ref: 'shared.yaml#/parameters/JobListLimit'`
-    - `$ref: 'shared.yaml#/parameters/JobListStartingAfter'`
-  - **Responses**:
-    - **200**: List of Rev AI Transcription Jobs
-      - **Content**: `application/json`
-      - **Schema**:
-        - `type`: `array`
-        - `items`: `$ref: '#/components/schemas/AsyncTranscriptionJob'`
+    | Parameter | Location | Description | Schema |
+    |-----------|----------|-------------|--------|
+    | limit | query | The maximum number of jobs to return. | integer |
+    | starting_after | query | A cursor for use in pagination. starting_after is an object ID that defines your place in the list. For instance, if you make a list request and receive 100 objects, ending with obj_foo, your subsequent call can include starting_after=obj_foo in order to fetch the next page of the list. | string |
+    - **Responses**:
+        - **200**: List of Rev AI Transcription Jobs
+            - **Content**: `application/json`
+            - **Schema**:
+            | Field | Type | Description |
+            |-------|------|-------------|
+            | (root) | array | An array of AsyncTranscriptionJob objects |
+
     - **400**: Bad Request
       - **Content**: `application/json`
       - **Schema**: `$ref: 'shared.yaml#/schemas/BadRequestProblemDetails'`
