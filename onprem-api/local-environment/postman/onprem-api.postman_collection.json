@@ -22,7 +22,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"media_url\": \"https://www.rev.ai/FTC_Sample_1.mp3\",\n    \"language\": \"en\"\n}",
+					"raw": "{\n\"media_url\": \"https://www.rev.ai/FTC_Sample_1.mp3\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -38,7 +38,7 @@
 			"request": {
 				"method": "GET",
 				"header": [],
-				"url": "http://127.0.0.1:57350/speechtotext/v1/jobs/R4DY7ImsohIF"
+				"url": "http://127.0.0.1:57350/speechtotext/v1/jobs/[put-job-id]"
 			},
 			"response": []
 		},
@@ -47,7 +47,7 @@
 			"request": {
 				"method": "GET",
 				"header": [],
-				"url": "http://127.0.0.1:57350/speechtotext/v1/jobs/R4DY7ImsohIF/transcript"
+				"url": "http://127.0.0.1:57350/speechtotext/v1/jobs/[put-job-id]/transcript"
 			},
 			"response": []
 		},
@@ -56,7 +56,7 @@
 			"request": {
 				"method": "GET",
 				"header": [],
-				"url": "http://127.0.0.1:57350/speechtotext/v1/jobs/R4DY7ImsohIF/captions"
+				"url": "http://127.0.0.1:57350/speechtotext/v1/jobs/[put-job-id]/captions"
 			},
 			"response": []
 		},
@@ -65,7 +65,7 @@
 			"request": {
 				"method": "DELETE",
 				"header": [],
-				"url": "http://127.0.0.1:57350/speechtotext/v1/jobs/R4DY7ImsohIF"
+				"url": "http://127.0.0.1:57350/speechtotext/v1/jobs/[put-job-id]"
 			},
 			"response": []
 		}
