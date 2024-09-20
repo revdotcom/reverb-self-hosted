@@ -22,7 +22,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"media_url\": \"https://www.rev.ai/FTC_Sample_1.mp3\"\n}",
+					"raw": "{\n    \"media_url\": \"https://www.rev.ai/FTC_Sample_1.mp3\",\n    \"language\": \"en\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -38,7 +38,7 @@
 			"request": {
 				"method": "GET",
 				"header": [],
-				"url": "http://127.0.0.1:57350/speechtotext/v1/jobs/[put-job-id]"
+				"url": "http://127.0.0.1:57350/speechtotext/v1/jobs/R4DY7ImsohIF"
 			},
 			"response": []
 		},
@@ -47,7 +47,25 @@
 			"request": {
 				"method": "GET",
 				"header": [],
-				"url": "http://127.0.0.1:57350/speechtotext/v1/jobs/[put-job-id]/transcript"
+				"url": "http://127.0.0.1:57350/speechtotext/v1/jobs/R4DY7ImsohIF/transcript"
+			},
+			"response": []
+		},
+		{
+			"name": "get async job captions",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": "http://127.0.0.1:57350/speechtotext/v1/jobs/R4DY7ImsohIF/captions"
+			},
+			"response": []
+		},
+		{
+			"name": "delete async job",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": "http://127.0.0.1:57350/speechtotext/v1/jobs/R4DY7ImsohIF"
 			},
 			"response": []
 		}

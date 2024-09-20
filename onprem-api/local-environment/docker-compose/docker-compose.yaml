@@ -7,7 +7,7 @@ services:
       - "6379:6379"
 
   onprem-gateway:
-    image: revdotcom/revai-onprem:open-gateway-3.15.0
+    image: revdotcom/revai-onprem:open-gateway-3.16.0
     depends_on:
       - redis
     ports:
