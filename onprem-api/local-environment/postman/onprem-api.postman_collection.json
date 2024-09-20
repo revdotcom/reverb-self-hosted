@@ -22,7 +22,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\"media_url\": \"https://www.rev.ai/FTC_Sample_1.mp3\"\n}",
+					"raw": "{\n    \"media_url\": \"https://www.rev.ai/FTC_Sample_1.mp3\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
