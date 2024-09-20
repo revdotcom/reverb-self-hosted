@@ -4,6 +4,7 @@ This Docker Compose configuration provides a local testing environment for the o
 
 ### How to Run
 
+Replace `[REVAI_API_KEY]` with your actual RevAI API key in the `docker-compose.yaml` file.
 To start the services, simply run the following command in the directory containing the `docker-compose.yml` file:
 
 ```bash

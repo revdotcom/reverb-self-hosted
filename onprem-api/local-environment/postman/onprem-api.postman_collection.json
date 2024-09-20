@@ -50,6 +50,24 @@
 				"url": "http://127.0.0.1:57350/speechtotext/v1/jobs/[put-job-id]/transcript"
 			},
 			"response": []
+		},
+		{
+			"name": "get async job captions",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": "http://127.0.0.1:57350/speechtotext/v1/jobs/[put-job-id]/captions"
+			},
+			"response": []
+		},
+		{
+			"name": "delete async job",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": "http://127.0.0.1:57350/speechtotext/v1/jobs/[put-job-id]"
+			},
+			"response": []
 		}
 	]
 }

@@ -7,7 +7,7 @@ services:
       - "6379:6379"
 
   onprem-gateway:
-    image: revdotcom/revai-onprem:open-gateway-3.15.0
+    image: revdotcom/revai-onprem:open-gateway-3.16.0
     depends_on:
       - redis
     ports:
@@ -17,16 +17,6 @@ services:
       - Initialization__CallBackUrl=https://9253-99-156-189-71.ngrok-free.app
       - Redis__Database=3
       - Redis__Endpoints=host.docker.internal
-      - Revdiarization__SubmissionQueue=local-dev-submission-revdiarization
-      - Revspeech__CompletionQueue=local-dev-gateway
-      - Revspeech__SubmissionQueue=local-dev-submission
-      - Revspeech__SubmissionQueueBrazilianPortuguese=local-dev-submission-ptbr
-      - Revspeech__SubmissionQueueFrench=local-dev-submission-fr
-      - Revspeech__SubmissionQueueGerman=local-dev-submission-de
-      - Revspeech__SubmissionQueueItalian=local-dev-submission-it
-      - Revspeech__SubmissionQueueMultilingualEnglishSpanish=local-dev-submission-m-en-es
-      - Revspeech__SubmissionQueueSpanish=local-dev-submission-es
-      - RevWhisper__Transcription__DefaultTranscriber__SubmissionQueueUrl=local-dev-submission-revwhisper
       - Runner_LogTemplate=[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}    {Properties}{NewLine}{Exception}
     logging:
       driver: "json-file"
