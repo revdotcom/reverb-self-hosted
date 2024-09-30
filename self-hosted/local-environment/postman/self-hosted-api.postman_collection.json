@@ -1,7 +1,7 @@
 {
 	"info": {
 		"_postman_id": "7c072e9a-6325-4a48-8451-f9dc48c668a0",
-		"name": "local onprem",
+		"name": "local self-hosted",
 		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
 		"_exporter_id": "12979331"
 	},

@@ -14,7 +14,7 @@ docker-compose up
 ### Testing the Solution
 
 To understand how to interact with the self-hosted transcription service, use the provided 
-markdown [Postman example collection](/onprem-api/local-environment/postman). This collection includes pre-configured requests for submitting audio files, checking transcription status, and retrieving the results. It is a great way to get familiar with the service and test its capabilities in your local environment.
+markdown [Postman example collection](/self-hosted/local-environment/postman). This collection includes pre-configured requests for submitting audio files, checking transcription status, and retrieving the results. It is a great way to get familiar with the service and test its capabilities in your local environment.
 
 ### Accessing the Services
 

@@ -261,7 +261,7 @@ $ docker run -e AccessToken=<YOUR_REV_AI_ACCESS_TOKEN> -e RedisConfig__Endpoints
 
 ## Starting From Docker Compose
 
-See the instructions in the [docker-compose](/onprem-api/local-environment/docker-compose) README.
+See the instructions in the [docker-compose](/self-hosted/local-environment/docker-compose) README.
 
 ## Container User
 For the sake of security, the containers by default run under non-root users predefined by the image. For certain operating systems, non-root users by default are not able to bind port 80 for `localhost`, which the application requires by default.
