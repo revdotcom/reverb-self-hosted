@@ -6,8 +6,8 @@ services:
     ports:
       - "6379:6379"
 
-  onprem-gateway:
-    image: revdotcom/revai-onprem:open-gateway-3.16.0
+  reverb-self-hosted-gateway:
+    image: revdotcom/reverb-self-hosted:open-gateway-3.16.0
     depends_on:
       - redis
     ports:
@@ -24,8 +24,8 @@ services:
         max-size: "10m"
         max-file: "3"
   
-  onprem-worker:
-    image: revdotcom/revai-onprem:open-en-workers-3.22.0
+  reverb-self-hosted-worker:
+    image: revdotcom/reverb-self-hosted:open-en-workers-3.22.0
     depends_on:
       - redis
     ports:
