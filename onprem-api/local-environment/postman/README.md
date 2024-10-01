@@ -1,3 +1,0 @@
-# Postman Collection for Self-Hosted Asynchronous Transcription
-
-This Postman example collection provides a set of pre-configured API requests that demonstrate how to interact with the self-hosted asynchronous transcription service. The collection includes examples for submitting audio files, checking transcription status, and retrieving the final transcription results. By using this collection, users can easily test and understand how to integrate the on-prem solution into their workflows, making it simple to manage transcription tasks directly from their local infrastructure. Each request is customizable to suit specific use cases, helping users quickly implement and explore the full capabilities of the transcription service.
