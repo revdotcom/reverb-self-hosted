@@ -5,28 +5,35 @@ This guide is written for developers and is best understood by those with previo
 - Docker
 - REST API
 - Redis
-- Postman 
+- Postman (for asynchronous transcription)
+- Websockets (for live transcription)
 
 ### Remarks
 We recommend using the On Prem solution with an Intel architecture.
 
-# Downloading the Image
+# Obtaining a Rev AI Access Token
+Go to the [Rev AI](https://rev.ai) website and create an account. Once logged in, nagivate to the `Access Token` section on the side bar and generate a new token.
+<span style="color: red;">Please store this token in a safe location, as you will need it to run the on prem containers</span>. You can also regenerate a new token and delete the old token via the website if you were to lose your token.
 
-The images are under the public Docker Hub repository, `revdotcom/revai-onprem`.
+# Downloading Images
+
+The images are under the public Docker Hub repository `revdotcom/reverb-self-hosted`.
 
 ```
-$ docker pull revdotcom/revai-onprem:<TAG_VERSION>
+$ docker pull revdotcom/reverb-self-hosted:<TAG_VERSION>
 ```
 
 ## Available Tags
 
-The On Prem deployment is split into two images: `Workers` and `Gateway`.
-As of this documentation, the following tags are the latest available tags:
-- open-gateway-3.15.0
-- open-workers-3.21.0
-- open-en-workers-3.21.0
+The On Prem deployment is split into multiple images: `Gateway`, `Workers`, and `Streaming`.
+The latest images are taged with `latest`, i.e.:
+- `open-gateway-latest`
+- `open-workers-latest` and `open-en-workers-latest`
+- `open-streaming-latest`
 
-If you encounter any issues when downloading please reach out to our team by email at `support@rev.ai`.
+For asynchronous transcription, only `Gateway` and `Workers` images are needed. For live transcription, only `Gateway` and `Streaming` images are needed.
+
+If you encounter any issues when downloading please reach out to our team by email at [support@rev.ai](mailto:support@rev.ai).
 
 # Environment Variables
 ## Gateway Environment Variables
@@ -99,13 +106,37 @@ Following `Worker` submission queue environment variable is required. This ensur
 | `ShutdownTimeoutSeconds` | number | 300 | The number of seconds after shutdown has been initiated that background tasks wait to finish. Bear in mind that Docker has its own shutdown timeout defaulted to 10 seconds, so that will be needed to increase whenever `ShutdownTimeoutSeconds` is increased. |
 | `ASPNETCORE_URLS` | string | `http://+:80` | ASP .Net Core environment variable to control the port which the application runs under |
 | `StorageConfig__Prefix` | string | "workers" | Optional prefix path to give to all Storage uploads. Allows for environment isolation. Cannot start nor end with a '/'. |
-| `MetricsConfig__Prometheus__Summary__Rtf__QuantileEpsilonPairsString` | string | `0.5,0.01;0.9,0.01;0.99,0.01` | Optional string representation of Prometheus Summary quantile and epsilon pairs to record Prometheus Summary quantiles on RTF with. It should be semicolon-delimited, with a comma separating the quantile and epsilon values, ie. '0.5,0.01;0.9,0.01;0.99,0.01' represents the quantile/epsilon pairs [0.5, 0.01] [0.9, 0.01] [0.99, 0.01]. |
-| `MetricsConfig__Prometheus__Summary__SourceFileDownloadTimeSeconds__QuantileEpsilonPairsString` | string | `0.5,0.01;0.9,0.01;0.99,0.01` | Optional string representation of Prometheus Summary quantile and epsilon pairs to record Prometheus Summary quantiles on source file download time in seconds with. It should be semicolon-delimited, with a comma separating the quantile and epsilon values, ie. '0.5,0.01;0.9,0.01;0.99,0.01' represents the quantile/epsilon pairs [0.5, 0.01] [0.9, 0.01] [0.99, 0.01]. |
-| `MetricsConfig__Prometheus__Summary__SourceFileSizeKb__QuantileEpsilonPairsString` | string | `0.5,0.01;0.9,0.01;0.99,0.01` | Optional string representation of Prometheus Summary quantile and epsilon pairs to record Prometheus Summary quantiles on source file size in kb with. It should be semicolon-delimited, with a comma separating the quantile and epsilon values, ie. '0.5,0.01;0.9,0.01;0.99,0.01' represents the quantile/epsilon pairs [0.5, 0.01] [0.9, 0.01] [0.99, 0.01]. |
+| `MetricsConfig__Prometheus__Summary__Rtf__QuantileEpsilonPairsString` | string | `0.5,0.01;0.9,0.01;0.99,0.01` | Optional string representation of Prometheus Summary quantile and epsilon pairs to record Prometheus Summary quantiles on RTF with. It should be semicolon-delimited, with a comma separating the quantile and epsilon values, i.e. '0.5,0.01;0.9,0.01;0.99,0.01' represents the quantile/epsilon pairs [0.5, 0.01] [0.9, 0.01] [0.99, 0.01]. |
+| `MetricsConfig__Prometheus__Summary__SourceFileDownloadTimeSeconds__QuantileEpsilonPairsString` | string | `0.5,0.01;0.9,0.01;0.99,0.01` | Optional string representation of Prometheus Summary quantile and epsilon pairs to record Prometheus Summary quantiles on source file download time in seconds with. It should be semicolon-delimited, with a comma separating the quantile and epsilon values, i.e. '0.5,0.01;0.9,0.01;0.99,0.01' represents the quantile/epsilon pairs [0.5, 0.01] [0.9, 0.01] [0.99, 0.01]. |
+| `MetricsConfig__Prometheus__Summary__SourceFileSizeKb__QuantileEpsilonPairsString` | string | `0.5,0.01;0.9,0.01;0.99,0.01` | Optional string representation of Prometheus Summary quantile and epsilon pairs to record Prometheus Summary quantiles on source file size in kb with. It should be semicolon-delimited, with a comma separating the quantile and epsilon values, i.e. '0.5,0.01;0.9,0.01;0.99,0.01' represents the quantile/epsilon pairs [0.5, 0.01] [0.9, 0.01] [0.99, 0.01]. |
+
+## Streaming Environment Variables
+
+### Required Environment Variables
+
+| Variable | Type | Description |
+|---|---|---|
+| `OnPrem__AccessToken` | string | Your Rev AI account access token. A valid token must be provided in order for the container to authenticate. |
+| `OnPrem__Redis__Endpoints` | string | Endpoints for the Redis instance. |
+| `OnPrem__Redis__KeyPrefix` | string | Prefix for all keys stored into Redis for this application to maintain key isolation across shared environments. |
+| `OnPrem__Redis__Database` | number | Database for Redis. Should be the same as the `Redis__Database` value provided to the `Gateway`. |
+| `OnPrem__InstanceIp` | string | IP address of the container running the streaming Docker image. `Gateway` containers must be able to make requests to this IP address. |
+
+### Optional Environment Variables
+
+| Variable | Type | Default | Description |
+|---|---|---|---|
+| `OnPrem__InitializationCallbackUrl` | string | null | Callback URL for `POST` request, made when the container initialization succeeds or fails. |
+| `OnPrem__InitializationAttempts` | number | 5 | The number of attempts made to reach the initialization callback before failure. |
+| `OnPrem__InitializationRetryDelayMs` | number | 1000 | The amount of time in milliseconds between each attempt to POST to the initialization callback. |
+| `OnPrem__Redis__EnableTls` | boolean | false | Whether Redis requests are required to be sent via SSL. |
+| `OnPrem__Redis__Password` | string | null | Password used to connect to the provided Redis instance. |
+| `Workers__NumWorkers` | number | 1 | The number of workers available for the container to process audio streams. Each worker can process one stream at a time; the higher the number of workers, the more streams that can be processed in parallel. |
+| `ASPNETCORE_URLS` | string | `http://+:80` | ASP .Net Core environment variable to control the port which the application runs under |
 
 # Networking
 
-The `Gateway` and `Workers` require an open network connection for authentication and initialization.
+The images require an open network connection for authentication and initialization.
 
 If instead you would prefer to whitelist specific URLs, the containers require communication with the following:
 
@@ -114,9 +145,9 @@ If instead you would prefer to whitelist specific URLs, the containers require c
 
 ## Initialization
 
-The `POST` request to `/initialize` is a required licensing request to Rev.ai's servers. It verifies the On Prem containers' license against your Rev.ai account. The request contains the following information:
+The `POST` request to `/initialize` is a required licensing request to Rev AI's servers. It verifies the On Prem containers' license against your Rev AI account. The request contains the following information:
 
-`access_token` - Customer's token provided to verify that they are signed up to use On Prem and to tell the container which account to charge to.
+`access_token` - Customer's access token.
 
 `container_key` - A unique container key identifying the On Prem container image hardcoded into the container itself.
 
@@ -129,7 +160,7 @@ Authorization: Bearer <YOUR_ACCOUNT_TOKEN>
 
 {
     "container_key":"UnIqUeKeY",
-    "container_version":"gateway-0.1.0"
+    "container_version":"open-gateway-0.1.0"
 }
 ```
 
@@ -142,7 +173,7 @@ Log Message on Successful Initialization:
 
 ## Billing
 
-Both the `Gateway` and `Workers` make a `POST` request to `/billing`. The billing requests from the `Workers` are used for logging purposes by the Rev AI team for accounting. The billing request from the `Gateway` contains the actual duration of the overall job. The requests contain the following:
+All images make a `POST` request to `/billing`. The billing requests from the `Workers` are used for logging purposes by the Rev AI team for accounting. The billing request from the `Gateway` contains the actual duration of the overall job. The requests contain the following:
 
 **Headers**
 
@@ -160,9 +191,9 @@ Both the `Gateway` and `Workers` make a `POST` request to `/billing`. The billin
 
 `revaiapi_endpoint` - An http url that the customer can use to forward the request to if they wish to implement a sidecar to inspect this billing request before it reaches Rev AI's server.
 
-`user_token` - A string in the following format: `v3|someString`. See initialization log message above for example.
+`user_token` - A string in the following format: `v4|someString`. See initialization log message above for example.
 
-`language` - Language code of the job. Currently defaults to `en`.
+`language` - Language code of the job.
 
 `metadata` - Metadata provided by the customer on the job. Only present in the `Gateway` billing request
 
@@ -178,7 +209,7 @@ x-rev-billing-type: api
     "duration": 5.87,
     "request_sent_on": "2020-03-30T04:29:59.7351045Z",
     "revaiapi_endpoint": "https://api.rev.ai/external/v2open/billing",
-    "user_token": "v3|someuniquestring",
+    "user_token": "v4|someuniquestring",
     "language": "en",
     "metadata": "My custom metadata",
     "job_details": "\{ \"type\": \"async\" \}"
@@ -236,6 +267,24 @@ The workers will download the provided `media_url` into local storage before per
 
 **Rev AI attaches a 100GB volume mount to each container we run with Runner__CountThreads=4.**
 
+## Streaming Resources
+
+### CPU and Memory Requirements
+
+The number of resources required varies depending on the number of workers each container has been initialized with using the `Workers__NumWorkers` variable. The number of workers dictates the number of streams that can be transcribed in parallel. Each stream started with `Gateway` will create a connection between the gateway and a `Streaming` container with an available worker.
+
+**The Rev AI recommended configuration is to run 4 workers on a AWS c6i.2xlarge equivalent machine (4 physical cores, 16gb memory). All resources must be provided to the container. Any other configuration should be tested by the customer that it is stable.**
+
+As a base, using a single streaming worker, the container requires at least 5GB of RAM. The table below provides information on the *MINIMUM* memory requirements for up to 4 workers. In the event you wish to run a non-standard configuration, you can use this a baseline. However it is guaranteed the image will require more memory than the baseline amount to process the job. A buffer of at least 2x the minimum memory is recommended.
+
+| Worker Count | Minimum Memory |
+| ---          | ---            |
+| 1 | 5 GB |
+| 2 | 6 GB |
+| 3 | 7 GB |
+| 4 | 8 GB |
+| x | (1x + 4) GB |
+
 ## Redis Requirements
 
 Intermediate transcript files and job data are stored in the provided Redis instance for a period of 24 hours. The Redis instance must be provisioned with enough memory to handle the number of jobs over a 24 hour period. Users can manually clear the space in Redis by deleting jobs once they complete and have received their transcripts.
@@ -252,11 +301,14 @@ From the command line run the following:
 
 ```
 # Gateway
-$ docker run -p <YOUR_HOST_PORT:80> -e Initialization__AccessToken=<YOUR_REV_AI_ACCESS_TOKEN> -e Redis__Endpoints=<YOUR_REDIS_ENDPOINT> -e Redis__KeyPrefix=<YOUR_KEY_PREFIX> -e  Redis__Database=<YOUR_REDIS_DATABASE> -e Revspeech__SubmissionQueue=revspeech-submission -e ReWhisper__Transcription__DefaultTranscriber__SubmissionQueueUrl=revwhisper-submission -e Revdiarization__SubmissionQueue=revdiarization-submission -e Revspeech__CompletionQueue=revspeech-completion
-revdotcom/revai:gateway-<TAG_VERSION>
+$ docker run -p <YOUR_HOST_PORT:80> -e Initialization__AccessToken=<YOUR_REV_AI_ACCESS_TOKEN> -e Redis__Endpoints=<YOUR_REDIS_ENDPOINT> -e Redis__KeyPrefix=<YOUR_KEY_PREFIX> -e  Redis__Database=<YOUR_REDIS_DATABASE> -e Revspeech__SubmissionQueue=revspeech-submission -e Revspeech__CompletionQueue=revspeech-completion
+revdotcom/reverb-self-hosted:open-gateway-<TAG_VERSION>
 
 # Workers
-$ docker run -e AccessToken=<YOUR_REV_AI_ACCESS_TOKEN> -e RedisConfig__Endpoints=<YOUR_REDIS_ENDPOINT> -e RedisConfig__KeyPrefix=<YOUR_KEY_PREFIX> -e  RedisConfig__Database=<YOUR_REDIS_DATABASE> -e InboundQueueName=revspeech-submission revdotcom/revai:workers-<TAG_VERSION>
+$ docker run -e AccessToken=<YOUR_REV_AI_ACCESS_TOKEN> -e RedisConfig__Endpoints=<YOUR_REDIS_ENDPOINT> -e RedisConfig__KeyPrefix=<YOUR_KEY_PREFIX> -e  RedisConfig__Database=<YOUR_REDIS_DATABASE> -e InboundQueueName=revspeech-submission revdotcom/reverb-self-hosted:open-workers-<TAG_VERSION>
+
+# Streaming
+$ docker run -e OnPrem__AccessToken=<YOUR_REV_AI_ACCESS_TOKEN> -e OnPrem__Redis__Endpoints=<YOUR_REDIS_ENDPOINT> -e OnPrem__Redis__KeyPrefix=<YOUR_KEY_PREFIX> -e  OnPrem__Redis__Database=<YOUR_REDIS_DATABASE> -e OnPrem__InstanceIp=<THIS_CONTAINER_IP> revdotcom/reverb-self-hosted:open-streaming-<TAG_VERSION>
 ```
 
 ## Starting From Docker Compose
@@ -268,6 +320,33 @@ For the sake of security, the containers by default run under non-root users pre
 
 If network or OS configurations prevent this, you can change the default application port by providing the following environment variable: `--emv ASPNETCORE_URLS=http://+:<custom_port>` on `docker run`. Optionally you can also run the docker as root user: `-u root` 
 
+## Providing InstanceIP
+
+In order for streams to function, `Gateway` container(s) must be able to form WebSocket connections with `Streaming` containers. Internally we do this by keeping track of IP addresses
+at which the `Gateway` container(s) can request to form a connection with each `Streaming` container. These IP addresses are highly dependent on the container orchestration system
+(or lack thereof) that you use. Therefore we ask that you provide each `Streaming` container with its own IP address accessible to the `Gateway` container(s) in the form of an environment variable
+set on container startup. An example for Kubernetes is shown below;
+```
+#Kubernetes: Downward API example for getting Pod IP
+spec:
+  containers:
+    - name: streaming-worker
+      image: <IMAGE NAME>
+      imagePullPolicy: Always
+      ports:
+        - containerPort: 80
+      resources:
+        requests:
+          cpu: <CPU>
+          memory: <MEMORY>
+      env:
+        - name: OnPrem__InstanceIp
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+```
+This takes advantage of the Kubernetes [Downward API](https://kubernetes.io/docs/concepts/workloads/pods/downward-api/) to set this environment variable for each started pod.
+
 ## File Storage
 
 Due to the nature of having persistent files over a 24 hour period, an object based file storage system is required to be configured as transcripts and other intermediate outputs from the `Workers` are stored and referenced to. Examples of cloud-based file storages include S3 and Azure blob storage. The file storage needs to support the following:
@@ -276,7 +355,7 @@ Due to the nature of having persistent files over a 24 hour period, an object ba
 - Retrieving of files/objects referenced via a key/path structure
 - Deleting of files/objects referenced via a key/path structure
 
-The `Gateway` and `Workers` by default have a Redis-backed file storage system implementation built in.
+The `Gateway` and `Workers` by default have a Redis-backed file storage system implementation built in. `Streaming` does not store any files.
 
 **Blob Storage Prefix and Lifecycle**
 
@@ -312,13 +391,13 @@ The `Gateway` and `Workers` by default have a Redis-backed message queue system 
 
 ## License Expiry
 
-**[TODO]**
+The `Gateway`, `Streaming` and `Workers` containers have a 24 hour expiration limit. 24 hours after the container has started, a `sigterm` signal is sent to the application. During this `sigterm` period, the application prevents new workflows/jobs to be processed and waits for all processing workflows/jobs to be completed. Once completed, the container is shutdown.
 
 # Using On Prem
 
 ## When Are the Containers Ready?
 
-Upon startup the `Gateway` and `Workers` containers will attempt to authenticate with Rev AI by sending a `POST` request to the `https://api.rev.ai/external/v2open/initialize` endpoint. After the container receives a response, if the `Initialization__CallbackUrl` or `InitializationCallbackUrl` are provided, the containers will then send a POST request to that url. This `POST` contains the initialization status.
+Upon startup the containers will attempt to authenticate with Rev AI by sending a `POST` request to the `https://api.rev.ai/external/v2open/initialize` endpoint. After the container receives a response, if the `Initialization__CallbackUrl` or `InitializationCallbackUrl` are provided, the containers will then send a POST request to that url. This `POST` contains the initialization status.
 
 Successful `POST` body:
 ```
@@ -330,9 +409,9 @@ Failed `POST` body:
 { "success": false }
 ```
 
-## Submitting a Job for Transcription
+## Submitting a Job for Asynchronous Transcription
 
-Once both the `Gateway` and `Workers` images are running, you can submit a file by making a `POST` request to `/speechtotext/v1/jobs` endpoint of the `Gateway` container with the proper parameters in the request body. Once the job is submitted, the user can query the status of the job and transcript via the API exposed in the `Gateway`. Outlined in the section titled `API Reference` is an overview of the available endpoints and features for On Prem. As On Prem is meant to keep near feature parity with the Cloud API, the precise API and model documentation can be found in the [Cloud API Reference](https://rev.ai/docs).
+Once both the `Gateway` and `Workers` images are running, you can submit a file by making a `POST` request to `/speechtotext/v1/jobs` endpoint of the `Gateway` container with the proper parameters in the request body. Once the job is submitted, the user can query the status of the job and transcript via the API exposed in the `Gateway`. As On Prem is meant to keep near feature parity with the Cloud API, the precise API and model documentation can be found in the [Cloud API Reference](https://rev.ai/docs).
 
 ## Gateway Workflow
 
@@ -341,7 +420,7 @@ When the job is created, it is stored into the Redis instance and is available t
 
 ## Audio Duration Detection
 
-Internally, the `Gateway` uses [Ffprobe](https://ffmpeg.org/ffprobe.html) and the audio's metadata to determine the length of the audio. **On Prem V2 has a audio duration maximum of 15 hours, and a minimum of 2 seconds.**. A corrupted or malformed audio where the audio duration cannot be detected may result in the job being failed prematurely.
+Internally, the `Gateway` uses [Ffprobe](https://ffmpeg.org/ffprobe.html) and the audio's metadata to determine the length of the audio. **On Prem has a audio duration maximum of 15 hours, and a minimum of 2 seconds.**. A corrupted or malformed audio where the audio duration cannot be detected may result in the job being failed prematurely.
 
 ## Chunking
 
@@ -447,6 +526,113 @@ If a `callback_url` is provided, the `Gateway` workflow will `POST` to the `call
 2021-09-14 7:08:26.492	Sent callback, success: True, server returned 200
 ```
 
+## Starting a Transcription Stream
+
+Once both the `Gateway` and `Streaming` images are running, you can begin a stream by making a WebSocket request to `/speechtotext/v1/stream` endpoint of the `Gateway` container with the proper parameters in the request body. Because this endpoint is a WebSocket endpoint it is not documented in the list of HTTP endpoints below, please refer to our public documentation for inforamation about the streaming protocol. As On Prem is meant to keep near feature parity with the Cloud API, the precise API and model documentation can be found in the [Cloud API Reference](https://docs.rev.ai/api/streaming/).
+
+## Initial Connection
+
+Once a WebSocket connection is opened with the `Gateway` it will attempt to find an available worker on a `Streaming` instance. Assuming this is successful the client will receive a text WebSocket messsage which looks like
+```
+# Successful connection message
+{
+    "type": "connected"
+}
+```
+
+Receiving this message means the `Gateway` is ready to begin receiving binary data from the client.
+
+## During the Connection
+
+Once connected the protocol is the same as our [Cloud Streaming Speech-To-Text API](https://docs.rev.ai/api/streaming/requests/#WebSocket-protocol). The `Gateway` will act as a proxy between the client and the `Streaming` worker to receive binary data and deliver streaming results.
+The format of these results is detailed in the [Cloud Streaming Speech-To-Text API documentation on responses](docs.rev.ai/api/streaming/responses/).
+
+## Finishing the Connection
+
+A successful stream is ended via the following steps:
+1. Client signals they are finished sending binary data by sending a text WebSocket message containing the following content `EOS`.
+2. `Streaming` and `Gateway` instance finish processing any audio still pending
+3. `Gateway` sends WebSocket close message to client with code `1000` and reason `Normal Closure.`
+4. client responds with successful close message of their own
+
+A failed stream will result in the client receiving a close message with a code and reason other than `1000`/`Normal Closure.`. Possible failures are listed below.
+
+### Close Codes
+
+| Close Code | Close Reason | Explaination |
+| ---        | ---          | ---          |
+| 1006 | Abnormal Closure | Catch all for most abnormal failures, you will need to look at the logs for further information |
+| 4002 | Bad Request... | In the case of a 4002 the Close Reason will contain more information about what specific parameters in your request were invalid |
+| 4010 | Shutting Down | Received when the `Gateway` or `Streaming` instance receives a SIGTERM in the middle of a stream |
+| 4013 | Try Again Later | There are no `worker`s current available to service the connection. You will need to wait for an ongoing stream to end or scale in more instances of the `Streaming` container |
+
+## Streaming Billing
+
+Upon finishing the connection the `Gateway` will make a request to the same billing endpoint as for asynchronous jobs with the duration of your stream. This duration is
+measured as the time between your connection opening and closing. You will not be billed for streams which receive a close code of 4013.
+
+## Streaming Workers
+
+Each `Streaming` application maintains set stateless speech-to-text `worker` threads. The number of `worker` threads can be configured by setting `Workers__NumWorkers`.
+
+The `Streaming` application uses [Ffmpeg](https://ffmpeg.org/ffmpeg.html) to transcode received binary messages into PCM16 audio. The speech-to-text `worker` performs the actual speech-to-text processing. The `worker` ingests a stream of PCM16 audio  and outputs transcribed text back over the same WebSocket connection. If for some reason there is a failure the `worker` communicates this failure back to the `Streaming` application which then communicates it to the client via a WebSocket close code.
+
+```
+# Sample log output for a successful job, aggregated by RevRequestId (logs will also include ffmpeg process output but those have been cut from this example for readability)
+
+2022-09-26 18:11:17.508	Refreshing instance with 0 workers
+2022-09-26 18:11:17.508	Claiming worker id: "Post-dd095787-8fda-4851-a2cf-65676d57f155" "0"
+2022-09-26 18:11:17.508	worker claimed
+2022-09-26 18:11:17.509	Acquired Post Processing worker with WorkerId: "Post-dd095787-8fda-4851-a2cf-65676d57f155_0"
+2022-09-26 18:11:17.509	worker claimed
+2022-09-26 18:11:17.509	Acquired Ctm worker with WorkerId: "Ctm-eadef66a-b50f-4833-97e4-3c54eef8558a_2"
+2022-09-26 18:11:17.509	Sending session start message to worker
+2022-09-26 18:11:17.509	Signaling connected to midtier
+2022-09-26 18:11:17.509	Skipping ffmpeg write-through step
+2022-09-26 18:11:17.509	Job request - "{\"id\":\"26\",\"job_dir_name\":\"/tmp/workers/Ctm-eadef66a-b50f-4833-97e4-3c54eef8558a/cfd09c27-939b-4526-b826-758a11d3eacc\",\"full_partials\":false,\"custom_vocab\":\"\",\"sample-rate\":16000,\"enable-speech-activity-detector\":false,\"enable-speaker-switch\":false}"
+2022-09-26 18:11:17.509	Claiming worker id: "Ctm-eadef66a-b50f-4833-97e4-3c54eef8558a" "2"
+2022-09-26 18:11:17.509	Updating scale in protection
+2022-09-26 18:11:17.509	The job config value "enable-speaker-switch" was changed
+2022-09-26 18:11:17.509	The job config value "enable-speech-activity-detector" was changed
+2022-09-26 18:11:17.510	The job config value "job_dir_name" is ignored
+2022-09-26 18:11:17.510	The job config value "sample-rate" was changed
+2022-09-26 18:11:17.510	Creating job id:"26" took 0.167366 ms
+2022-09-26 18:11:17.510	Starting job processing, job "26" ("0x7f5fa92f98b0")
+2022-09-26 18:11:17.510	Sample rate "16000"
+2022-09-26 18:11:17.512	Refreshing instance with 0 workers
+2022-09-26 18:11:24.355	Final: segment 4500 - 7390, sw count "1"
+2022-09-26 18:11:24.375	Postprocessing for 7 words "completed" in 0.0 sec
+2022-09-26 18:11:26.256	Final: segment 7260 - 9630, sw count "1"
+2022-09-26 18:11:26.270	Postprocessing for 4 words "completed" in 0.0 sec
+2022-09-26 18:11:35.687	Final: segment 9630 - 19870, sw count "1"
+2022-09-26 18:11:40.885	"Timeout reading WebSocket."
+2022-09-26 18:11:40.947	Final: segment 19870 - 19980, sw count "1"
+2022-09-26 18:11:45.948	"Timeout reading WebSocket."
+2022-09-26 18:11:47.351	Received EOS from midtier
+2022-09-26 18:11:47.351	Finished in flight cv step
+2022-09-26 18:11:47.351	Signalling EOS to worker
+2022-09-26 18:11:47.351	Finished sending EOS to worker
+2022-09-26 18:11:47.351	Finished midtier pipeline
+2022-09-26 18:11:47.352	Job stats: id - "26" completed. Processed 20 seconds of audio, cv init time 0, decoder time 0, silence time 0, chunk time 22.718523451. Total finals "2". Number speaker switches "0".
+2022-09-26 18:11:47.352	SetCompleted didn't change status of the job "26". Current job status is: "3"
+2022-09-26 18:11:47.352	Received Eos from streaming worker
+2022-09-26 18:11:47.352	Finished worker pipeline
+2022-09-26 18:11:47.352	Finishing streaming pipeline
+2022-09-26 18:11:47.352	Gracefully finishing client connection
+2022-09-26 18:11:47.352	MD5 of the job "26" audio is "CE1D485E8B538EE1F28EC91167EF0CE0"
+2022-09-26 18:11:47.352	Freeing worker connections: "Post-dd095787-8fda-4851-a2cf-65676d57f155_0", "Ctm-eadef66a-b50f-4833-97e4-3c54eef8558a_2"
+2022-09-26 18:11:47.352	Refreshing instance with 0 workers
+2022-09-26 18:11:47.353	Updating scale in protection
+2022-09-26 18:11:47.353	Updating scale in protection
+2022-09-26 18:11:47.353	Updating scale in protection
+2022-09-26 18:11:47.353	Worker unclaimed
+2022-09-26 18:11:47.353	Worker unclaimed
+2022-09-26 18:11:47.353	Updating scale in protection
+2022-09-26 18:11:47.353	Invoked "GET" "https://10.0.49.169/v1/stream?content_type=audio/x-raw;layout=interleaved;rate=16000;format=S16LE;channels=1&remove_disfluencies=True&full_partials=False&enable_speaker_switch=False&skip_postprocessing=False", returned 101
+2022-09-26 18:11:47.358	Refreshing instance with 1 workers
+2022-09-26 18:11:47.363	Refreshing instance with 1 workers
+```
+
 ## Prometheus Metrics
 
 The On Prem containers publish the following metrics to their `/metrics` endpoint, which can be used by [Prometheus](https://prometheus.io/docs/introduction/overview/).
@@ -510,6 +696,21 @@ The number of speech-to-text workers initialized are recorded by the `Workers` c
 - Number of billing request failures (`workers_billing_request_failure_{statusCodeInt}`)
 - Number of billing response verification failures (`workers_billing_response_verification_failure`)
 
+### Streaming
+
+#### Worker Count Metrics
+
+- Number of CTM workers initialized (`worker_count_ready_ctm`)
+- Number of Post Processing workers initialized (`worker_count_ready_postprocessing`)
+- Total number of worker sets initialized. Every job requires 1 worker set to process (`worker_count_ready_set`)
+
+#### Worker Failure Metrics
+
+- Number of bad request failures (`workers_job_failure_bad_request`)
+- Number of transcribing failures due to lack of speech in the audio (`workers_job_failure_no_speech`)
+- Number of service not allowed failures (`workers_job_failure_service_not_allowed`)
+- Number of internal processing failures (`workers_job_failure_internal_processing`)
+
 #### Instance Unhealthy Metric
 
 - A value of > 0 indicates that this instance has encountered an un-recoverable failure and should be restarted (`workers_is_unhealthy`)
@@ -551,7 +752,7 @@ error is encountered.
 
 ## Logging
 
-By default, the `Gateway` and `Workers` log to standard output (stdout) in [Serilog](https://serilog.net/) format. It is highly recommended to capture the standard output and save them for troubleshooting.
+By default, the `Gateway`, `Workers`, and `Streaming` containers log to standard output (stdout) in [Serilog](https://serilog.net/) format. It is highly recommended to capture the standard output and save them for troubleshooting.
 
 ```
 # Note these logs samples are formatted JSON for readability. The application will output non-formatted JSON logs
@@ -678,6 +879,20 @@ In the case of unexpected failure when the `Workers` containers fail to return a
 2021-09-14 01:10:50.443	Message received with delay 300.1 seconds
 ```
 
+## Streaming
+
+### Processing Failures
+
+The `Streaming` container is a stateless application. All failures will result in a non 1000 close code as detailed above. Some errors such as `4002: Bad Request` are expected. To investigate any other failures we
+recommend you find the RevRequestId for your streaming request and look at any associated logs from the `Streaming` and `Gateway` containers. Finding this RevRequestId is easiest done finding the associated API invocation log for your request.
+These logs will look like:
+
+```
+2022-10-03 13:45:14.520	Invoked "GET" "https://api.rev.ai/speechtotext/v1/stream?access_token=abcd*&content_type=audio/x-raw;layout=interleaved;rate=48000;format=S16LE;channels=1&metadata=test", returned 101
+```
+
+The RevRequestId from this log can then be used to find all other logs associated with the stream from both the `Gateway` and `Streaming` containers.
+
 # Cloud Differences
 
 ## API
@@ -688,10 +903,10 @@ On Prem tries to keep its API interface as similar to Rev AI's Cloud API as poss
 - `media_url` must be provided for submission. `multiform/form-data` submission does not exist.
 - Jobs persist for a maximum of 24 hours instead of 30 days
 - Maximum audio length is 15 hours instead of 17
-- Allowed languages are restricted to those listed in `API Reference -Jobs` section [here](https://revai-onprem.redoc.ly/#operation/SubmitTranscriptionJob!path=language&t=request)
-- `delete_after_seconds` is not supported in On Prem V2
+- Allowed languages are restricted to English only
+- `delete_after_seconds` is not supported in On Prem
 - New job `failure` type: `billing_failure`
-- There is no `GET /account` endpoint for On Prem V2
+- There is no `GET /account` endpoint for On Prem
 
 ## Workflow
 
@@ -701,6 +916,14 @@ The workflow of a On Prem has a few key differences compared to Rev AI's Cloud s
 be accurately detected from the `media_url`, the job will not be chunked correctly which may increase turn around time
 - Maximum time the job can spend in the workflow is 2 hours and 15 minutes before it fails with `internal_processing`
 
+## Streaming API
+
+On Prem tries to keep its API interface as similar to Rev AI's Cloud API as possible, however there are a few differences:
+
+- No Access Token required per request. Instead Access Token is provided on container startup
+- Jobs are not created for Streaming requests and no information about the stream is persisted to any storage service
+- Only allowed language is English
+- Custom Vocabularies are not supported
 
 # On Prem API Endpoints
 

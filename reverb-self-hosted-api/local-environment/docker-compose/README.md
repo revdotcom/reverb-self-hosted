@@ -4,7 +4,7 @@ This Docker Compose configuration provides a local testing environment for the s
 
 ### How to Run
 
-Replace `[REVAI_API_KEY]` with your actual RevAI API key in the `docker-compose.yaml` file.
+Replace `[REVAI_API_KEY]` with your actual Rev AI access token in the `docker-compose.yaml` file.
 To start the services, simply run the following command in the directory containing the `docker-compose.yml` file:
 
 ```bash
@@ -20,5 +20,6 @@ markdown [Postman example collection](/onprem-api/local-environment/postman). Th
 
 - **Gateway**: http://localhost:57350
 - **Worker**: http://localhost:57360
+- **Streaming Worker**: http://localhost:57370
 - **Redis**: http://localhost:6379
 - **Prometheus**: http://localhost:9090
