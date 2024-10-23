@@ -5,7 +5,7 @@ networks:
     driver: bridge
     ipam:
       config:
-        - subnet: 172.20.0.0/16
+        - subnet: 192.20.0.0/16
 
 services:
   redis:
@@ -26,6 +26,8 @@ services:
       - Redis__Database=3
       - Redis__Endpoints=host.docker.internal
       - Runner_LogTemplate=[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}    {Properties}{NewLine}{Exception}
+      - Revspeech__CompletionQueue=local-dev-gateway
+      - Revspeech__SubmissionQueue=local-dev-submission
     logging:
       driver: "json-file"
       options:
@@ -57,13 +59,13 @@ services:
     image: revdotcom/reverb-self-hosted:open-streaming-latest
     networks:
       onprem_custom_network:
-        ipv4_address: 172.20.0.10
+        ipv4_address: 192.20.0.10
     depends_on:
       - redis
     ports:
       - "57370:80"
     environment:
-      - AccessToken=[REVAI_API_KEY]
+      - OnPrem__AccessToken=[REVAI_API_KEY]
       - OnPrem__InstanceIp=172.20.0.10
       - OnPrem__Redis__Database=3
       - OnPrem__Redis__Endpoints=host.docker.internal
