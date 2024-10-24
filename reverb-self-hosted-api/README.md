@@ -29,7 +29,7 @@ The On Prem deployment is split into multiple images: `Gateway`, `Workers`, and 
 The latest images are taged with `latest`, i.e.:
 - `open-gateway-latest`
 - `open-workers-latest` and `open-en-workers-latest`
-- `open-streaming-latest`
+- `open-streaming-latest` and `open-en-streaming-latest`
 
 For asynchronous transcription, only `Gateway` and `Workers` images are needed. For live transcription, only `Gateway` and `Streaming` images are needed.
 
