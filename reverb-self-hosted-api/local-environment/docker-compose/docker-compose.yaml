@@ -1,5 +1,12 @@
 version: '3.8'
 
+networks:
+  onprem_custom_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.20.0.0/16
+
 services:
   redis:
     image: redis:latest
@@ -7,17 +14,20 @@ services:
       - "6379:6379"
 
   reverb-self-hosted-gateway:
-    image: revdotcom/reverb-self-hosted:open-gateway-3.16.0
+    image: revdotcom/reverb-self-hosted:open-gateway-latest
+    networks:
+      - onprem_custom_network
     depends_on:
       - redis
     ports:
       - "57350:80"
     environment:
       - Initialization__AccessToken=[REVAI_API_KEY]
-      - Initialization__CallBackUrl=https://9253-99-156-189-71.ngrok-free.app
       - Redis__Database=3
       - Redis__Endpoints=host.docker.internal
       - Runner_LogTemplate=[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}    {Properties}{NewLine}{Exception}
+      - Revspeech__CompletionQueue=local-dev-gateway
+      - Revspeech__SubmissionQueue=local-dev-submission
     logging:
       driver: "json-file"
       options:
@@ -25,7 +35,7 @@ services:
         max-file: "3"
   
   reverb-self-hosted-worker:
-    image: revdotcom/reverb-self-hosted:open-en-workers-3.22.0
+    image: revdotcom/reverb-self-hosted:open-en-workers-latest
     depends_on:
       - redis
     ports:
@@ -39,6 +49,27 @@ services:
       - RedisConfig__Endpoints=host.docker.internal
       - RedisConfig__KeyPrefix=onpremv2
       - Runner_LogTemplate=[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}    {Properties}{NewLine}{Exception}
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+  
+  reverb-self-hosted-streaming:
+    image: revdotcom/reverb-self-hosted:open-streaming-latest
+    networks:
+      onprem_custom_network:
+        ipv4_address: 192.20.0.10
+    depends_on:
+      - redis
+    ports:
+      - "57370:80"
+    environment:
+      - OnPrem__AccessToken=[REVAI_API_KEY]
+      - OnPrem__InstanceIp=172.20.0.10
+      - OnPrem__Redis__Database=3
+      - OnPrem__Redis__Endpoints=host.docker.internal
+      - OnPrem__Redis__KeyPrefix=onpremv2
     logging:
       driver: "json-file"
       options:

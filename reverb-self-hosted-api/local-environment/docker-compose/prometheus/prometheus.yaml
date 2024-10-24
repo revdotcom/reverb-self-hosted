@@ -15,3 +15,6 @@ scrape_configs:
   - job_name: revspeech_worker
     static_configs:
       - targets: ["host.docker.internal:57360"]
+  - job_name: streaming_worker
+    static_configs:
+      - targets: ["host.docker.internal:57370"]
