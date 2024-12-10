@@ -19,7 +19,8 @@ markdown [Postman example collection](/onprem-api/local-environment/postman). Th
 ### Accessing the Services
 
 - **Gateway**: http://localhost:57350
-- **Worker**: http://localhost:57360
+- **English Worker**: http://localhost:57360
+- **Spanglish Worker**: http://localhost:57365
 - **Streaming Worker**: http://localhost:57370
 - **Redis**: http://localhost:6379
 - **Prometheus**: http://localhost:9090
