@@ -29,6 +29,7 @@ The On Prem deployment is split into multiple images: `Gateway`, `Workers`, and 
 The latest images are taged with `latest`, i.e.:
 - `open-gateway-latest`
 - `open-workers-latest` and `open-en-workers-latest`
+- `open-multilingual-en-es-workers-latest`
 - `open-streaming-latest` and `open-en-streaming-latest`
 
 For asynchronous transcription, only `Gateway` and `Workers` images are needed. For live transcription, only `Gateway` and `Streaming` images are needed.
@@ -55,6 +56,7 @@ Following `Worker` submission queue environment variable is required. This ensur
 | Variable | Type | Default | Description |
 |---|---|---|---|
 | `Revspeech__SubmissionQueue` | string | null | Key prefix for the Redis-based queue that the `Gateway` submits English jobs to. Should be configured the same as the `InboundQueueName` environment variable in the English `Workers` deployment. |
+| `Revspeech__SubmissionQueueMultilingualEnglishSpanish` | string | null | Key prefix for the Redis-based queue that the `Gateway` submits multilingual English/Spanish jobs to. Should be configured the same as the `InboundQueueName` environment variable in the multilingual English/Spanish `Workers` deployment. |
 
 ### Optional Environment Variables
 
@@ -903,7 +905,7 @@ On Prem tries to keep its API interface as similar to Rev AI's Cloud API as poss
 - `media_url` must be provided for submission. `multiform/form-data` submission does not exist.
 - Jobs persist for a maximum of 24 hours instead of 30 days
 - Maximum audio length is 15 hours instead of 17
-- Allowed languages are restricted to English only
+- Allowed languages are: English (`en`), Spanglish (`en/es`)
 - `delete_after_seconds` is not supported in On Prem
 - New job `failure` type: `billing_failure`
 - There is no `GET /account` endpoint for On Prem
