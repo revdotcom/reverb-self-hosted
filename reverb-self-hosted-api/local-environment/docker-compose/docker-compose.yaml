@@ -28,6 +28,7 @@ services:
       - Runner_LogTemplate=[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}    {Properties}{NewLine}{Exception}
       - Revspeech__CompletionQueue=local-dev-gateway
       - Revspeech__SubmissionQueue=local-dev-submission
+      - Revspeech__SubmissionQueueMultilingualEnglishSpanish=local-dev-submission-enes      
     logging:
       driver: "json-file"
       options:
@@ -45,6 +46,27 @@ services:
       - APPLICATIONNAME=revspeech
       - ASPNETCORE_ENVIRONMENT=onprem
       - InboundQueueName=local-dev-submission
+      - RedisConfig__Database=3
+      - RedisConfig__Endpoints=host.docker.internal
+      - RedisConfig__KeyPrefix=onpremv2
+      - Runner_LogTemplate=[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}    {Properties}{NewLine}{Exception}
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+  
+  reverb-self-hosted-spanglish-worker:
+    image: revdotcom/reverb-self-hosted:open-multilingual-en-es-workers-latest
+    depends_on:
+      - redis
+    ports:
+      - "57365:80"
+    environment:
+      - AccessToken=[REVAI_API_KEY]
+      - APPLICATIONNAME=revspeech
+      - ASPNETCORE_ENVIRONMENT=onprem
+      - InboundQueueName=local-dev-submission-enes
       - RedisConfig__Database=3
       - RedisConfig__Endpoints=host.docker.internal
       - RedisConfig__KeyPrefix=onpremv2
